@@ -1,0 +1,23 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: kubeedge
+spec:
+  enabled: true
+  extension:
+    name: kubeedge
+    version: 1.13.1
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:
+    
+    kubeedge:
+      enabled: true
+    cloudcore:
+      cloudCore:
+        modules:
+          cloudHub:
+            advertiseAddress:
+              - ""

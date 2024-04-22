@@ -1,0 +1,14 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: tower
+spec:
+  enabled: true
+  extension:
+    name: tower
+    version: 1.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:

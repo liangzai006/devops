@@ -1,0 +1,44 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: dmp
+spec:
+  enabled: true
+  extension:
+    name: dmp
+    version: 2.1.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: [ ]
+    
+    
+    extension:
+      frontend:
+        image:
+          repository: radondb/dmp-frontend
+          tag: "2.1.0"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 300Mi
+          requests:
+            cpu: 200m
+            memory: 300Mi
+    
+    agent:
+      dmp:
+        image:
+          repository: radondb/dmp
+          tag: "2.1.0"
+        resources:
+          limits:
+            cpu: 200m
+            memory: 300Mi
+          requests:
+            cpu: 200m
+            memory: 300Mi
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

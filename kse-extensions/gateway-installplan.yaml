@@ -1,0 +1,37 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: gateway
+spec:
+  enabled: true
+  extension:
+    name: gateway
+    version: 1.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:
+    
+    frontend:
+      enabled: true
+    
+    backend:
+      enabled: true
+      config:
+        gateway:
+          namespace: kubesphere-controls-system
+          valuesOverride:
+            controller:
+              image:
+                repository: kubesphere/nginx-ingress-controller
+                tag: "v1.4.0"
+                pullPolicy: IfNotPresent
+                digest: ""
+          exposeNodeLabelKey: "node-role.kubernetes.io/control-plane"
+          versionConstraint: ">= 4.3.0, < 4.5.0"
+          logSearchEndpoint: "http://whizard-telemetry-apiserver.extension-whizard-telemetry.svc:9090"
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

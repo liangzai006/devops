@@ -1,0 +1,52 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: network
+spec:
+  enabled: true
+  extension:
+    name: network
+    version: 1.0.0
+  config: |
+    global:
+      # will override the all registry and tag if set
+      imageRegistry: # registry.cn-beijing.aliyuncs.com
+      tag: # "v1.0.0"
+      imagePullSecrets: []
+    
+    network:
+      ippool:
+        type: "calico"
+    
+      apiserver:
+        image:
+          registry: registry.cn-beijing.aliyuncs.com
+          repository: kse/network-extension-apiserver
+          tag: "v1.0.0"
+          pullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 5m
+            memory: 50Mi
+    
+      controller:
+        image:
+          registry: registry.cn-beijing.aliyuncs.com
+          repository: kse/network-extension-controller
+          tag: "v1.0.0"
+          pullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 100m
+            memory: 200Mi
+          requests:
+            cpu: 10m
+            memory: 50Mi
+    
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

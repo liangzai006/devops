@@ -1,0 +1,189 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: whizard-notification
+spec:
+  enabled: true
+  extension:
+    name: whizard-notification
+    version: 2.5.1
+  config: |
+    global:
+      imageRegistry: ""
+      nodeSelector: {}
+      imagePullSecrets: []
+      clusterInfo: {}
+    
+    notification-manager:
+      kubesphere:
+        enabled: true
+        version: v4.0.0
+    
+      operator:
+        containers:
+          operator:
+            image:
+              tag: v2.5.1
+    
+      notificationmanager:
+        sidecar:
+          tenant:
+            resources:
+              limits:
+                cpu: 200m
+                memory: 256Mi
+              requests:
+                cpu: 200m
+                memory: 256Mi
+        annotations:
+          kubesphere.io/serviceaccount-name: notification-tenant-sidecar
+        image:
+          tag: v2.5.1
+    
+    alertmanager-proxy:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 500Mi
+        requests:
+          cpu: 100m
+          memory: 100Mi
+      service:
+        nodePort: 31093
+    
+    alertmanager:
+      # The alertmanager replica count.
+      # If you want to control it by yourself, please firstly configure the replicaAutoSet item as false.
+      replicaCount: 1
+      # If true, will ignore the upper replicaCount item and try to auto set alertmanager replica count by the node num:
+      #   set the alertmanager replica count as 1 when the node num < 3, or set as 3.
+      replicaAutoSet: true
+    
+      # alertmanager container config
+      image:
+        repository: prometheus/alertmanager
+        # Overrides the image tag whose default is the chart appVersion.
+        tag: ""
+      resources:
+        limits:
+          cpu: "1"
+          memory: 500Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+    
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - alertmanager
+              namespaces:
+              - kubesphere-monitoring-system
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+    
+      # configReloader config to set the container in charge of triggerring alertmanager container reload changed config.
+      configmapReload:
+        enabled: true
+        image:
+          repository: prometheus-operator/prometheus-config-reloader
+          tag: v0.68.0
+        resources:
+          limits:
+            cpu: 100m
+            memory: 50Mi
+          requests:
+            cpu: 20m
+            memory: 20Mi
+      # alertmanager config
+      config:
+        inhibit_rules:
+        - equal: ["cluster", "namespace", "alertname"]
+          source_matchers:
+          - severity = "critical"
+          target_matchers:
+          - severity =~ "warning|info"
+        - equal: ["cluster", "namespace", "alertname"]
+          source_matchers:
+          - severity = "warning"
+          target_matchers:
+          - severity = "info"
+        - equal: ["cluster", "namespace"]
+          source_matchers:
+          - alertname = "InfoInhibitor"
+          target_matchers:
+          - severity = "info"
+    
+        receivers:
+        - name: "Default"
+        - name: "null"
+        - name: Watchdog
+        - name: prometheus
+          webhook_configs:
+          - url: http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts
+        - name: event
+          webhook_configs:
+          - send_resolved: false
+            url: http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts
+        - name: auditing
+          webhook_configs:
+          - send_resolved: false
+            url: http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts
+    
+        route:
+          group_by:
+          - "cluster"
+          - "namespace"
+          - "alertname"
+          - "rule_id"
+          group_wait: 30s
+          receiver: "Default"
+          repeat_interval: 12h
+          routes:
+          - matchers:
+            - alertname = "Watchdog"
+            receiver: Watchdog
+          - matchers:
+            - alertname = "InfoInhibitor"
+            receiver: "null"
+          - group_interval: 30s
+            matchers:
+            - alerttype = "event"
+            receiver: "event"
+          - group_interval: 30s
+            matchers:
+            - alerttype = "auditing"
+            receiver: "auditing"
+          - matchers:
+            - alerttype =~ ".*"
+            receiver: "prometheus"
+    
+    notification-history:
+      enabled: true
+      vectorNamespace: kubesphere-logging-system
+    
+      sinks:
+        opensearch:
+          # Create opensearch sink or not
+          enabled: true
+          # Configurations for the opensearch sink, more info for https://vector.dev/docs/reference/configuration/sinks/elasticsearch/
+          # Usually users needn't change the following OpenSearch sink config, and the default sinks in secret "kubesphere-logging-system/vector-sinks" created by the WhizardTelemetry Data Pipeline extension will be used.
+      #    metadata:
+      #      api_version: v8
+      #      auth:
+      #        strategy: basic
+      #        user: admin
+      #        password: admin
+      #      batch:
+      #        timeout_secs: 5
+      #      buffer:
+      #        max_events: 10000
+      #      endpoints:
+      #        - https://opensearch-cluster-data.kubesphere-logging-system.svc:9200
+      #      tls:
+      #        verify_certificate: false

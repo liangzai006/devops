@@ -1,0 +1,44 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: metrics-server
+spec:
+  enabled: true
+  extension:
+    name: metrics-server
+    version: 0.7.0
+  config: |
+    global:
+      imageRegistry: ""
+      imagePullSecrets: []
+    
+    metrics-server:
+      fullnameOverride: "metrics-server"
+    
+      image:
+        registry: docker.io
+        repository: kubesphere/metrics-server
+        tag: "v0.7.0"
+    
+      args:
+      - --kubelet-insecure-tls
+    
+      # See https://github.com/kubernetes-sigs/metrics-server#scaling
+      resources:
+        requests:
+          cpu: 100m
+          memory: 200Mi
+        limits:
+          cpu: 100m
+          memory: 200Mi
+    
+      addonResizer:
+        enabled: false
+        image:
+          registry: docker
+          repository: kubesphere/addon-resizer
+          tag: 1.8.20
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

@@ -1,0 +1,41 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: servicemesh
+spec:
+  enabled: true
+  extension:
+    name: servicemesh
+    version: 1.0.0
+  config: |
+    global:
+    
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      imageTag: 
+      
+    backend:
+      ## istio
+      istio:
+        meshConfig:
+          defaultConfig:
+            tracing:
+              sampling: 1.0
+    
+      ## kiali
+      kiali:
+        prometheus_url: http://prometheus-k8s.kubesphere-monitoring-system.svc:9090
+    
+      ## jaeger
+      jaeger:
+        storage:
+          options:
+            es:
+              server-urls: https://opensearch-cluster-data.kubesphere-logging-system.svc:9200
+              username: admin
+              password: admin
+          #  secretName: jaeger-secret-opensearch
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

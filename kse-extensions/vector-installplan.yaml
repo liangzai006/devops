@@ -1,0 +1,150 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: vector
+spec:
+  enabled: true
+  extension:
+    name: vector
+    version: 1.0.0
+  config: |
+    aggregator:
+      role: Aggregator
+      image:
+        tag: 0.36.0-debian
+      resources:
+        requests:
+         cpu: 100m
+         memory: 100Mi
+        limits:
+         cpu: 2000m
+         memory: 500Mi
+      extraVolumeMounts:
+        - name: host-time
+          readOnly: true
+          mountPath: /etc/localtime
+      extraVolumes:
+        - name: host-time
+          hostPath:
+            path: /etc/localtime
+            type: ''
+      hook:
+        postInstall:
+          image:
+            repo: kubesphere/kubectl
+            tag: v1.27.12
+      vectorConfig:
+        resources:
+          requests:
+            cpu: 5m
+            memory: 10Mi
+          limits:
+            cpu: 50m
+            memory: 50Mi
+        image:
+          repo: kubesphere/vector-config
+          tag: v0.2.1
+          pullPolicy: IfNotPresent
+      persistence:
+        enabled: true
+        existingClaim: ""
+        storageClassName: ""
+      podLabels:
+        vector.dev/exclude: "false"
+    agent:
+      image:
+        tag: 0.36.0-debian
+      resources:
+        requests:
+          cpu: 100m
+          memory: 100Mi
+        limits:
+          cpu: 2000m
+          memory: 500Mi
+      role: Agent
+      extraVolumes:
+        - name: host-time
+          hostPath:
+            path: /etc/localtime
+            type: ''
+        - name: k8s-audit
+          hostPath:
+            path: /etc/kubernetes/audit
+            type: ''
+        - name: ks-audit
+          hostPath:
+            path: /etc/kubesphere/audit
+            type: ''
+      extraVolumeMounts:
+        - name: host-time
+          readOnly: true
+          mountPath: /etc/localtime
+        - name: k8s-audit
+          mountPath: /etc/kubernetes/audit
+        - name: ks-audit
+          mountPath: /etc/kubesphere/audit
+      service:
+        ports:
+        - name: api
+          protocol: TCP
+          port: 8686
+        - name: prom-exporter
+          port: 9090
+          protocol: TCP
+      podLabels:
+        vector.dev/exclude: "false"
+      hook:
+        postInstall:
+          image:
+            repo: kubesphere/kubectl
+            tag: v1.27.12
+      vectorConfig:
+        resources:
+          requests:
+            cpu: 5m
+            memory: 10Mi
+          limits:
+            cpu: 50m
+            memory: 50Mi
+        image:
+          repo: kubesphere/vector-config
+          tag: v0.2.1
+          pullPolicy: IfNotPresent
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/edge
+                    operator: DoesNotExist
+      tolerations:
+        - operator: Exists
+      # A secret named vector-sinks will be created in namespace kubesphere-logging-namespace with the following sink configs,
+      # which will be used as the default sinks for logging, auditing, events, and notification history.
+      sinks:
+        opensearch:
+          api_version: v8
+          auth:
+            strategy: basic
+            user: admin
+            password: admin
+          batch:
+            timeout_secs: 5
+          buffer:
+            max_events: 10000
+          endpoints:
+            - https://opensearch-cluster-data.kubesphere-logging-system.svc:9200
+          tls:
+            verify_certificate: false
+          request:
+            retry_attempts: 10
+    
+    global:
+      imageRegistry: ""
+      nodeSelector: {}
+      imagePullSecrets: []
+      clusterInfo: {}
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

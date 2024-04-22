@@ -1,0 +1,111 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: springcloud
+spec:
+  enabled: true
+  extension:
+    name: springcloud
+    version: 1.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:
+    
+    backend:
+      replicaCount: 1
+      image:
+        repository: kubesphere/spring-cloud-controller
+        tag: v0.1.1
+        pullPolicy: IfNotPresent
+    
+      resources:
+        limits:
+          cpu: '1'
+          memory: 1Gi
+        requests:
+          cpu: 100m
+          memory: 20Mi
+    
+      busybox:
+        image:
+          repository: library/busybox
+          tag: 1.31.1
+    
+      ############################nacos###########################
+      nacos:
+        # Default values for nacos.
+        # This is a YAML-formatted file.
+        # Declare variables to be passed into your templates.
+        global:
+          # mode: cluster
+          mode: standalone
+        nacos:
+          image:
+            repository: kubesphere/nacos-server
+            tag: v2.0.4
+            pullPolicy: IfNotPresent
+          plugin:
+            enable: true
+            image:
+              repository: kubesphere/nacos-peer-finder-plugin
+              tag: 1.1
+          replicaCount: 1
+          domainName: cluster.local
+          preferhostmode: hostname
+          serverPort: 8848
+          health:
+            enabled: false
+          auth:
+            enabled: false
+            tokenExpireSeconds: '18000'
+            token: SecretKey012345678901234567890123456789012345678901234567890123456789
+            cacheEnabled: false
+          storage:
+            type: embedded
+      #      type: mysql
+      #      db:
+      #        host: localhost
+      #        name: nacos
+      #        port: 3306
+      #        username: usernmae
+      #        password: password
+      #        param: characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useSSL=false
+        persistence:
+          enabled: false
+          data:
+            accessModes:
+              - ReadWriteOnce
+            storageClassName: manual
+            resources:
+              requests:
+                storage: 5Gi
+        service:
+          # The default NodePort 30000 port conflicts with KubeEdge port, adjust it to the default ClusterIP.
+          type: ClusterIP
+      #    type: NodePort
+          port: 8848
+      #    nodePort: 30000
+        ingress:
+          enabled: false
+          annotations: {}
+        resources:
+          # We usually recommend not to specify default resources and to leave this as a conscious
+          # choice for the user. This also increases chances charts run on environments with little
+          # resources, such as Minikube. If you do want to specify resources, uncomment the following
+          # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+          # limits:
+          #   cpu: 100m
+          #   memory: 128Mi
+          requests:
+            cpu: 500m
+            memory: 2Gi
+        annotations: {}
+        nodeSelector: {}
+        tolerations: []
+        affinity: {}
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

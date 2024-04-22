@@ -1,0 +1,28 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: openpitrix
+spec:
+  enabled: true
+  extension:
+    name: openpitrix
+    version: 2.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: [ ]
+    
+    apps:
+      enabled: true
+      image:
+        repository: kubesphere/apps-manage
+        pullPolicy: IfNotPresent
+        tag: "v2.0.0"
+      resources:
+        requests:
+          memory: "100Mi"
+          cpu: "100m"
+        limits:
+          memory: "100Mi"
+          cpu: "100m"
+    

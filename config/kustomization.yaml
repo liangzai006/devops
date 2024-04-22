@@ -4,3 +4,19 @@ kind: Kustomization
 
 resources:
 - installplan/install.yaml
+- installplan/dmp.yaml
+
+patches:
+  - target:
+      kind: InstallPlan
+    patch: |
+      - op: add
+        path: /spec/clusterScheduling/placement/clusters
+        value: [hosts,member,test]
+  - target:
+      kind: InstallPlan
+      name: dmp
+    patch: |
+      - op: replace
+        path: /spec/clusterScheduling/placement/clusters
+        value: [dmp-hosts]

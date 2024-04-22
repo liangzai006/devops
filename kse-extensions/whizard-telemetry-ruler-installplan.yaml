@@ -1,0 +1,33 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: whizard-telemetry-ruler
+spec:
+  enabled: true
+  extension:
+    name: whizard-telemetry-ruler
+    version: 1.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:
+    
+    whizard-telemetry-ruler:
+      auditingAlerting:
+        enabled: true
+    
+      eventsAlerting:
+        enabled: true
+    
+      config:
+        sinks:
+        - name: alertmanager
+          type: webhook
+          config:
+            ### Please modify to your actual ip address.
+            url: http://127.0.0.1:31093/api/v1/alerts
+  clusterScheduling:
+    placement:
+      clusters:
+        - host

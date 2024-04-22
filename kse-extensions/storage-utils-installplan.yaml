@@ -1,0 +1,34 @@
+apiVersion: kubesphere.io/v1alpha1
+kind: InstallPlan
+metadata:
+  name: storage-utils
+spec:
+  enabled: true
+  extension:
+    name: storage-utils
+    version: 1.0.0
+  config: |
+    global:
+      imageRegistry: docker.io
+      imagePullSecrets: []
+      tag:
+    
+    frontend:
+      enabled: true
+    
+    backend:
+      enabled: true
+      replicaCount: 1
+      storageclassAccessor:
+        enabled: true
+      pvcAutoResizer:
+        enabled: true
+        prometheusUrl: "http://prometheus-k8s.kubesphere-monitoring-system.svc:9090"
+      snapshotController:
+        enabled: true
+      snapshotClassController:
+        enabled: true
+  clusterScheduling:
+    placement:
+      clusters:
+        - host
