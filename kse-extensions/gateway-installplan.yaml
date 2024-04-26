@@ -1,6 +1,8 @@
 apiVersion: kubesphere.io/v1alpha1
 kind: InstallPlan
 metadata:
+  annotations:
+    "kubesphere.io/installation-mode": "Multicluster"
   name: gateway
 spec:
   enabled: true

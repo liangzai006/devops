@@ -1,12 +1,15 @@
 apiVersion: kubesphere.io/v1alpha1
 kind: InstallPlan
 metadata:
+  annotations:
+    kubesphere.io/installation-mode: Multicluster
   name: gateway
 spec:
-  enabled: true
-  extension:
-    name: gateway
-    version: 1.0.0
+  clusterScheduling:
+    placement:
+      clusters:
+      - host
+      - member2-poc
   config: |
     global:
       imageRegistry: docker.io
@@ -31,9 +34,7 @@ spec:
           exposeNodeLabelKey: "node-role.kubernetes.io/control-plane"
           versionConstraint: ">= 4.3.0, < 4.5.0"
           logSearchEndpoint: "http://whizard-telemetry-apiserver.extension-whizard-telemetry.svc:9090"
-  clusterScheduling:
-    placement:
-      clusters:
-        - host
-        - member2
- 
+  enabled: true
+  extension:
+    name: gateway
+    version: 1.0.0
