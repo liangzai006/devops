@@ -123,7 +123,7 @@ applyCluster() {
         continue
       fi
     fi
-    checkName=$(kubectl get cluster "$clusterName" -o name)
+    checkName=$(kubectl get cluster "$clusterName" -o name 2> /dev/null)
     if [[ -z "$checkName" ]]; then
       echo "${clusterName}集群不存在"
       kubectl apply -f "$KS_CLUSTER"
