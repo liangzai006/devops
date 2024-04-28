@@ -40,15 +40,15 @@ enableExtensions() {
     mkdir "${1}extensions"
   fi
 
-  #  if [[ ! -f "${1}extensions/kustomization.yaml" || ${EXTENSION_COPY} == true ]]; then
-  if [[ ! -f "kse-extensions/kustomization.yaml" ]]; then
-    echo "检测到缺少kustomization.yaml文件，请将kustomization.yaml文件放置kse-extensions目录下"
-    exit 1
+  if [[ ! -f "${1}extensions/kustomization.yaml" || ${EXTENSION_KUSTOMIZE_COPY} == true ]]; then
+    if [[ ! -f "kse-extensions/kustomization.yaml" ]]; then
+      echo "检测到缺少kustomization.yaml文件，请将kustomization.yaml文件放置kse-extensions目录下"
+      exit 1
+    fi
+
+    cp kse-extensions/kustomization.yaml "${1}extensions/kustomization.yaml"
+
   fi
-
-  cp kse-extensions/kustomization.yaml "${1}extensions/kustomization.yaml"
-
-  #  fi
 
   yq ".resources" "${1}extensions/kustomization.yaml" | while IFS= read -r reource; do
     resourceName=$(echo "$reource" | sed "s/- //")
@@ -115,7 +115,7 @@ applyCluster() {
 
     clusterName=$(echo "$KS_CLUSTER" | sed 's/.*\///; s/\.yaml$//')
 
-    if [[ "${CLEAR_DEPLOY_CLUSTER}" == "enable" ]]; then
+    if [[ ${CLEAR_DEPLOY_CLUSTER} == true ]]; then
       if [[ ! -f "${DEPLOY_PATH}kubeconfig/${clusterName}.yaml" ]]; then
         echo "${clusterName} KubeConfig不存在，将清理集群资源"
         kubectl delete -f "${KS_CLUSTER}"
@@ -123,7 +123,7 @@ applyCluster() {
         continue
       fi
     fi
-    checkName=$(kubectl get cluster "$clusterName" -o name 2> /dev/null)
+    checkName=$(kubectl get cluster "$clusterName" -o name 2>/dev/null)
     if [[ -z "$checkName" ]]; then
       echo "${clusterName}集群不存在"
       kubectl apply -f "$KS_CLUSTER"
@@ -168,7 +168,7 @@ generateCluster() {
 
 }
 
-if [[ "${NOT_DEPLOY_HOST}" != "enable" ]]; then
+if [[ ${NOT_DEPLOY_HOST} != true ]]; then
   clusters+=("host")
 fi
 
