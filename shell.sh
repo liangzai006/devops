@@ -111,12 +111,12 @@ enableExtensions() {
 
 applyCluster() {
 
-  for KS_CLUSTER in "${DEPLOY_PATH}"deployCluster/*; do
+  for KS_CLUSTER in "${1}"deployCluster/*; do
 
     clusterName=$(echo "$KS_CLUSTER" | sed 's/.*\///; s/\.yaml$//')
 
     if [[ ${CLEAR_DEPLOY_CLUSTER} == true ]]; then
-      if [[ ! -f "${DEPLOY_PATH}kubeconfig/${clusterName}.yaml" ]]; then
+      if [[ ! -f "${1}kubeconfig/${clusterName}.yaml" ]]; then
         echo "${clusterName} KubeConfig不存在，将清理集群资源"
         kubectl delete -f "${KS_CLUSTER}"
         rm "${KS_CLUSTER}"
