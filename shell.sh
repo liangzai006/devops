@@ -115,14 +115,14 @@ applyCluster() {
 
     clusterName=$(echo "$KS_CLUSTER" | sed 's/.*\///; s/\.yaml$//')
 
-    if [[ ${CLEAR_DEPLOY_CLUSTER} == true ]]; then
-      if [[ ! -f "${1}kubeconfig/${clusterName}.yaml" ]]; then
-        echo "${clusterName} KubeConfig不存在，将清理集群资源"
-        kubectl delete -f "${KS_CLUSTER}"
-        rm "${KS_CLUSTER}"
-        continue
-      fi
-    fi
+#    if [[ ${CLEAR_DEPLOY_CLUSTER} == true ]]; then
+#      if [[ ! -f "${1}kubeconfig/${clusterName}.yaml" ]]; then
+#        echo "${clusterName} KubeConfig不存在，将清理集群资源"
+#        kubectl delete -f "${KS_CLUSTER}"
+#        rm "${KS_CLUSTER}"
+#        continue
+#      fi
+#    fi
     checkName=$(kubectl get cluster "$clusterName" -o name 2>/dev/null)
     if [[ -z "$checkName" ]]; then
       echo "${clusterName}集群不存在"
