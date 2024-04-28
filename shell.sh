@@ -42,7 +42,7 @@ enableExtensions() {
 
   if [[ ! -f "${1}extensions/kustomization.yaml" || ${EXTENSION_KUSTOMIZE_COPY} == true ]]; then
     if [[ ! -f "kse-extensions/kustomization.yaml" ]]; then
-      echo "检测到缺少kustomization.yaml文件，请将kustomization.yaml文件放置kse-extensions目录下"
+      echo "检测到缺少kustomization.yaml文件，请将kustomization.yaml文件放置kse-extensions目录下或放置${1}extensions目录下"
       exit 1
     fi
 
